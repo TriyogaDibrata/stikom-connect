@@ -23,5 +23,6 @@ Route::post('register', 'API\UserController@register');
 
 Route::group(['middleware' => 'auth:api'], function(){
 	Route::post('details', 'API\UserController@details');
-	Route::get('list', 'API\LaporanController@index');
+	Route::get('list', 'API\LaporanController@LaporanList');
+	Route::post('laporanDetail', 'API\LaporanController@LaporanDetail');
 });

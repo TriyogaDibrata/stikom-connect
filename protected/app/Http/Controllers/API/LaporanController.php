@@ -7,7 +7,7 @@ use App\Http\Controllers\Controller;
 use App\laporans;
 use Illuminate\Support\Facades\Auth;
 use Validator;
-
+use DB;
 class LaporanController extends Controller
 {
     public $successStatus = 200;
@@ -16,9 +16,15 @@ class LaporanController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function Laporanlist(Request $request)
     {   
-        $laporan = laporans::all()->where('hidden', '0');
+        $laporan = laporans::where('hidden', 0)
+                   ->with('file')
+                   ->with('hasUser')
+                   ->join('m_status', 'm_status.id', '=', 't_laporans.status_id' )
+                   ->join('m_kategori', 'm_kategori.id', '=', 't_laporans.kategori_id' )
+                   ->select('t_laporans.id', 't_laporans.user_id', 't_laporans.topik', 't_laporans.uraian', 'm_status.status', 'm_kategori.nama')
+                   ->get();
         return response()->json(['count' => count($laporan), 'success' => $laporan], $this->successStatus);
     }
 
@@ -27,9 +33,24 @@ class LaporanController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function LaporanDetail(Request $request)
     {
-        //
+        $laporan_id = $request->input('laporan_id');
+        if (empty($laporan_id)) {
+            return [
+                "success" => false,
+                "message" => "Item is not found"
+            ];
+        }
+
+        $detail = laporans::where('t_laporans.id', $laporan_id)
+                   ->with('files')
+                   ->with('hasUser')
+                   ->join('m_status', 'm_status.id', '=', 't_laporans.status_id' )
+                   ->join('m_kategori', 'm_kategori.id', '=', 't_laporans.kategori_id' )
+                   ->select('t_laporans.id', 't_laporans.user_id', 't_laporans.topik', 't_laporans.uraian', 'm_status.status', 'm_kategori.nama')
+                   ->first();
+        return response()->json(['success' => $detail], $this->successStatus);
     }
 
     /**
